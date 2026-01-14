@@ -23,6 +23,22 @@ const weightUnits = {
     'stone': 6350.29
 };
 
+// Volume conversion factors to base unit (milliliters)
+const volumeUnits = {
+    'ml': 1,
+    'l': 1000,
+    'cm³': 1,
+    'm³': 1000000,
+    'gal (US)': 3785.41,
+    'gal (UK)': 4546.09,
+    'qt': 946.353,
+    'pt': 473.176,
+    'cup': 236.588,
+    'fl oz': 29.5735,
+    'tbsp': 14.7868,
+    'tsp': 4.92892
+};
+
 // Temperature conversion (uses formulas instead of factors)
 const temperatureUnits = ['°C', '°F', 'K'];
 
@@ -142,6 +158,10 @@ function loadConverterSection(sectionId) {
             title: 'Weight Converter',
             description: 'Convert between milligrams, grams, kilograms, tons, ounces, pounds, etc.'
         },
+        volume: {
+            title: 'Volume Converter',
+            description: 'Convert between milliliters, liters, gallons, cups, fluid ounces, etc.'
+        },
         temperature: {
             title: 'Temperature Converter',
             description: 'Convert between Celsius, Fahrenheit, and Kelvin.'
@@ -169,6 +189,8 @@ function loadConverterSection(sectionId) {
             formHTML += createLengthConverterForm();
         } else if (sectionId === 'weight') {
             formHTML += createWeightConverterForm();
+        } else if (sectionId === 'volume') {
+            formHTML += createVolumeConverterForm();
         } else if (sectionId === 'temperature') {
             formHTML += createTemperatureConverterForm();
         } else if (sectionId === 'currency') {
@@ -185,6 +207,8 @@ function loadConverterSection(sectionId) {
             setupLengthConverter();
         } else if (sectionId === 'weight') {
             setupWeightConverter();
+        } else if (sectionId === 'volume') {
+            setupVolumeConverter();
         } else if (sectionId === 'temperature') {
             setupTemperatureConverter();
         } else if (sectionId === 'currency') {
@@ -602,6 +626,104 @@ function swapCurrencyUnits() {
     
     // Perform conversion
     performCurrencyConversion();
+}
+
+// Create volume converter form HTML
+function createVolumeConverterForm() {
+    const units = Object.keys(volumeUnits);
+    const unitOptions = units.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+    
+    return `
+        <div class="converter-container">
+            <div class="converter-input-group">
+                <label for="vol-from-value">From:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="vol-from-value" placeholder="Enter value" value="1" step="any">
+                    <select id="vol-from-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="converter-button">
+                <button id="vol-swap-btn" title="Swap units">⇄</button>
+            </div>
+            
+            <div class="converter-input-group">
+                <label for="vol-to-value">To:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="vol-to-value" placeholder="Result" readonly>
+                    <select id="vol-to-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="conversion-info">
+            <p id="vol-conversion-text">1 l = <span id="vol-conversion-result">1</span> l</p>
+        </div>
+    `;
+}
+
+// Setup event listeners for volume converter
+function setupVolumeConverter() {
+    const fromValue = document.getElementById('vol-from-value');
+    const fromUnit = document.getElementById('vol-from-unit');
+    const toValue = document.getElementById('vol-to-value');
+    const toUnit = document.getElementById('vol-to-unit');
+    const swapBtn = document.getElementById('vol-swap-btn');
+    
+    // Set default units
+    fromUnit.value = 'l';
+    toUnit.value = 'gal (US)';
+    
+    // Add event listeners
+    fromValue.addEventListener('input', performVolumeConversion);
+    fromUnit.addEventListener('change', performVolumeConversion);
+    toUnit.addEventListener('change', performVolumeConversion);
+    swapBtn.addEventListener('click', swapVolumeUnits);
+    
+    // Perform initial conversion
+    performVolumeConversion();
+}
+
+// Perform volume conversion
+function performVolumeConversion() {
+    const fromValue = document.getElementById('vol-from-value');
+    const fromUnit = document.getElementById('vol-from-unit');
+    const toValue = document.getElementById('vol-to-value');
+    const toUnit = document.getElementById('vol-to-unit');
+    const conversionText = document.getElementById('vol-conversion-text');
+    const conversionResult = document.getElementById('vol-conversion-result');
+    
+    const value = parseFloat(fromValue.value) || 0;
+    
+    // Convert to base unit (milliliters) then to target unit
+    const valueInML = value * volumeUnits[fromUnit.value];
+    const result = valueInML / volumeUnits[toUnit.value];
+    
+    toValue.value = result.toFixed(6).replace(/\.?0+$/, '');
+    
+    // Update conversion info
+    conversionText.textContent = `1 ${fromUnit.value} = `;
+    conversionResult.textContent = (volumeUnits[toUnit.value] / volumeUnits[fromUnit.value]).toFixed(6).replace(/\.?0+$/, '');
+}
+
+// Swap volume units
+function swapVolumeUnits() {
+    const fromUnit = document.getElementById('vol-from-unit');
+    const toUnit = document.getElementById('vol-to-unit');
+    const fromValue = document.getElementById('vol-from-value');
+    const toValue = document.getElementById('vol-to-value');
+    
+    // Swap unit selects
+    [fromUnit.value, toUnit.value] = [toUnit.value, fromUnit.value];
+    
+    // Swap values
+    [fromValue.value, toValue.value] = [toValue.value, fromValue.value];
+    
+    // Perform conversion
+    performVolumeConversion();
 }
 
 // Utility function for conversions (to be expanded in future steps)
