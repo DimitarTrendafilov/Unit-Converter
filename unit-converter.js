@@ -49,6 +49,20 @@ const speedUnits = {
     'mach': 343
 };
 
+// Area conversion factors to base unit (square meters)
+const areaUnits = {
+    'mm²': 0.000001,
+    'cm²': 0.0001,
+    'm²': 1,
+    'km²': 1000000,
+    'hectare': 10000,
+    'in²': 0.00064516,
+    'ft²': 0.092903,
+    'yd²': 0.836127,
+    'acre': 4046.86,
+    'mile²': 2589988.11
+};
+
 // Temperature conversion (uses formulas instead of factors)
 const temperatureUnits = ['°C', '°F', 'K'];
 
@@ -211,6 +225,8 @@ function loadConverterSection(sectionId) {
             formHTML += createTemperatureConverterForm();
         } else if (sectionId === 'currency') {
             formHTML += createCurrencyConverterForm();
+        } else if (sectionId === 'area') {
+            formHTML += createAreaConverterForm();
         } else {
             formHTML += '<p style="color: #999;">Converter form coming soon...</p>';
         }
@@ -231,6 +247,8 @@ function loadConverterSection(sectionId) {
             setupTemperatureConverter();
         } else if (sectionId === 'currency') {
             setupCurrencyConverter();
+        } else if (sectionId === 'area') {
+            setupAreaConverter();
         }
     }
 }
@@ -840,6 +858,104 @@ function swapSpeedUnits() {
     
     // Perform conversion
     performSpeedConversion();
+}
+
+// Create area converter form HTML
+function createAreaConverterForm() {
+    const units = Object.keys(areaUnits);
+    const unitOptions = units.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+    
+    return `
+        <div class="converter-container">
+            <div class="converter-input-group">
+                <label for="area-from-value">From:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="area-from-value" placeholder="Enter value" value="1" step="any">
+                    <select id="area-from-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="converter-button">
+                <button id="area-swap-btn" title="Swap units">⇄</button>
+            </div>
+            
+            <div class="converter-input-group">
+                <label for="area-to-value">To:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="area-to-value" placeholder="Result" readonly>
+                    <select id="area-to-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="conversion-info">
+            <p id="area-conversion-text">1 m² = <span id="area-conversion-result">10.764</span> ft²</p>
+        </div>
+    `;
+}
+
+// Setup event listeners for area converter
+function setupAreaConverter() {
+    const fromValue = document.getElementById('area-from-value');
+    const fromUnit = document.getElementById('area-from-unit');
+    const toValue = document.getElementById('area-to-value');
+    const toUnit = document.getElementById('area-to-unit');
+    const swapBtn = document.getElementById('area-swap-btn');
+    
+    // Set default units
+    fromUnit.value = 'm²';
+    toUnit.value = 'ft²';
+    
+    // Add event listeners
+    fromValue.addEventListener('input', performAreaConversion);
+    fromUnit.addEventListener('change', performAreaConversion);
+    toUnit.addEventListener('change', performAreaConversion);
+    swapBtn.addEventListener('click', swapAreaUnits);
+    
+    // Perform initial conversion
+    performAreaConversion();
+}
+
+// Perform area conversion
+function performAreaConversion() {
+    const fromValue = document.getElementById('area-from-value');
+    const fromUnit = document.getElementById('area-from-unit');
+    const toValue = document.getElementById('area-to-value');
+    const toUnit = document.getElementById('area-to-unit');
+    const conversionText = document.getElementById('area-conversion-text');
+    const conversionResult = document.getElementById('area-conversion-result');
+    
+    const value = parseFloat(fromValue.value) || 0;
+    
+    // Convert to base unit (square meters) then to target unit
+    const valueInM2 = value * areaUnits[fromUnit.value];
+    const result = valueInM2 / areaUnits[toUnit.value];
+    
+    toValue.value = result.toFixed(6).replace(/\.?0+$/, '');
+    
+    // Update conversion info
+    conversionText.textContent = `1 ${fromUnit.value} = `;
+    conversionResult.textContent = (areaUnits[toUnit.value] / areaUnits[fromUnit.value]).toFixed(6).replace(/\.?0+$/, '');
+}
+
+// Swap area units
+function swapAreaUnits() {
+    const fromUnit = document.getElementById('area-from-unit');
+    const toUnit = document.getElementById('area-to-unit');
+    const fromValue = document.getElementById('area-from-value');
+    const toValue = document.getElementById('area-to-value');
+    
+    // Swap unit selects
+    [fromUnit.value, toUnit.value] = [toUnit.value, fromUnit.value];
+    
+    // Swap values
+    [fromValue.value, toValue.value] = [toValue.value, fromValue.value];
+    
+    // Perform conversion
+    performAreaConversion();
 }
 
 // Utility function for conversions (to be expanded in future steps)
