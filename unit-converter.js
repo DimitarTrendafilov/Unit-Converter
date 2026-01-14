@@ -127,17 +127,13 @@ function loadConverterSection(sectionId) {
             title: 'Length Converter',
             description: 'Convert between meters, kilometers, miles, feet, inches, etc.'
         },
-        weight: {
-            title: 'Weight Converter',
-            description: 'Convert between kilograms, grams, pounds, ounces, etc.'
-        },
         temperature: {
             title: 'Temperature Converter',
             description: 'Convert between Celsius, Fahrenheit, and Kelvin.'
         },
-        volume: {
-            title: 'Volume Converter',
-            description: 'Convert between liters, milliliters, gallons, cups, etc.'
+        currency: {
+            title: 'Currency Converter',
+            description: 'Convert between different world currencies with real-time rates.'
         },
         area: {
             title: 'Area Converter',
