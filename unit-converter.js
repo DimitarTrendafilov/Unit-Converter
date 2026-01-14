@@ -39,6 +39,16 @@ const volumeUnits = {
     'tsp': 4.92892
 };
 
+// Speed conversion factors to base unit (m/s)
+const speedUnits = {
+    'm/s': 1,
+    'km/h': 0.277778,
+    'mph': 0.44704,
+    'ft/s': 0.3048,
+    'knot': 0.514444,
+    'mach': 343
+};
+
 // Temperature conversion (uses formulas instead of factors)
 const temperatureUnits = ['°C', '°F', 'K'];
 
@@ -162,6 +172,10 @@ function loadConverterSection(sectionId) {
             title: 'Volume Converter',
             description: 'Convert between milliliters, liters, gallons, cups, fluid ounces, etc.'
         },
+        speed: {
+            title: 'Speed Converter',
+            description: 'Convert between m/s, km/h, mph, ft/s, knots, mach, etc.'
+        },
         temperature: {
             title: 'Temperature Converter',
             description: 'Convert between Celsius, Fahrenheit, and Kelvin.'
@@ -191,6 +205,8 @@ function loadConverterSection(sectionId) {
             formHTML += createWeightConverterForm();
         } else if (sectionId === 'volume') {
             formHTML += createVolumeConverterForm();
+        } else if (sectionId === 'speed') {
+            formHTML += createSpeedConverterForm();
         } else if (sectionId === 'temperature') {
             formHTML += createTemperatureConverterForm();
         } else if (sectionId === 'currency') {
@@ -209,6 +225,8 @@ function loadConverterSection(sectionId) {
             setupWeightConverter();
         } else if (sectionId === 'volume') {
             setupVolumeConverter();
+        } else if (sectionId === 'speed') {
+            setupSpeedConverter();
         } else if (sectionId === 'temperature') {
             setupTemperatureConverter();
         } else if (sectionId === 'currency') {
@@ -724,6 +742,104 @@ function swapVolumeUnits() {
     
     // Perform conversion
     performVolumeConversion();
+}
+
+// Create speed converter form HTML
+function createSpeedConverterForm() {
+    const units = Object.keys(speedUnits);
+    const unitOptions = units.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+    
+    return `
+        <div class="converter-container">
+            <div class="converter-input-group">
+                <label for="speed-from-value">From:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="speed-from-value" placeholder="Enter value" value="100" step="any">
+                    <select id="speed-from-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="converter-button">
+                <button id="speed-swap-btn" title="Swap units">⇄</button>
+            </div>
+            
+            <div class="converter-input-group">
+                <label for="speed-to-value">To:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="speed-to-value" placeholder="Result" readonly>
+                    <select id="speed-to-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="conversion-info">
+            <p id="speed-conversion-text">1 km/h = <span id="speed-conversion-result">0.621</span> mph</p>
+        </div>
+    `;
+}
+
+// Setup event listeners for speed converter
+function setupSpeedConverter() {
+    const fromValue = document.getElementById('speed-from-value');
+    const fromUnit = document.getElementById('speed-from-unit');
+    const toValue = document.getElementById('speed-to-value');
+    const toUnit = document.getElementById('speed-to-unit');
+    const swapBtn = document.getElementById('speed-swap-btn');
+    
+    // Set default units
+    fromUnit.value = 'km/h';
+    toUnit.value = 'mph';
+    
+    // Add event listeners
+    fromValue.addEventListener('input', performSpeedConversion);
+    fromUnit.addEventListener('change', performSpeedConversion);
+    toUnit.addEventListener('change', performSpeedConversion);
+    swapBtn.addEventListener('click', swapSpeedUnits);
+    
+    // Perform initial conversion
+    performSpeedConversion();
+}
+
+// Perform speed conversion
+function performSpeedConversion() {
+    const fromValue = document.getElementById('speed-from-value');
+    const fromUnit = document.getElementById('speed-from-unit');
+    const toValue = document.getElementById('speed-to-value');
+    const toUnit = document.getElementById('speed-to-unit');
+    const conversionText = document.getElementById('speed-conversion-text');
+    const conversionResult = document.getElementById('speed-conversion-result');
+    
+    const value = parseFloat(fromValue.value) || 0;
+    
+    // Convert to base unit (m/s) then to target unit
+    const valueInMS = value * speedUnits[fromUnit.value];
+    const result = valueInMS / speedUnits[toUnit.value];
+    
+    toValue.value = result.toFixed(6).replace(/\.?0+$/, '');
+    
+    // Update conversion info
+    conversionText.textContent = `1 ${fromUnit.value} = `;
+    conversionResult.textContent = (speedUnits[toUnit.value] / speedUnits[fromUnit.value]).toFixed(6).replace(/\.?0+$/, '');
+}
+
+// Swap speed units
+function swapSpeedUnits() {
+    const fromUnit = document.getElementById('speed-from-unit');
+    const toUnit = document.getElementById('speed-to-unit');
+    const fromValue = document.getElementById('speed-from-value');
+    const toValue = document.getElementById('speed-to-value');
+    
+    // Swap unit selects
+    [fromUnit.value, toUnit.value] = [toUnit.value, fromUnit.value];
+    
+    // Swap values
+    [fromValue.value, toValue.value] = [toValue.value, fromValue.value];
+    
+    // Perform conversion
+    performSpeedConversion();
 }
 
 // Utility function for conversions (to be expanded in future steps)
