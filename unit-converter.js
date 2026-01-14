@@ -12,6 +12,17 @@ const lengthUnits = {
     'mile': 1609.34
 };
 
+// Weight conversion factors to base unit (grams)
+const weightUnits = {
+    'mg': 0.001,
+    'g': 1,
+    'kg': 1000,
+    'ton': 1000000,
+    'oz': 28.3495,
+    'lb': 453.592,
+    'stone': 6350.29
+};
+
 // Temperature conversion (uses formulas instead of factors)
 const temperatureUnits = ['°C', '°F', 'K'];
 
@@ -127,6 +138,10 @@ function loadConverterSection(sectionId) {
             title: 'Length Converter',
             description: 'Convert between meters, kilometers, miles, feet, inches, etc.'
         },
+        weight: {
+            title: 'Weight Converter',
+            description: 'Convert between milligrams, grams, kilograms, tons, ounces, pounds, etc.'
+        },
         temperature: {
             title: 'Temperature Converter',
             description: 'Convert between Celsius, Fahrenheit, and Kelvin.'
@@ -152,6 +167,8 @@ function loadConverterSection(sectionId) {
         
         if (sectionId === 'length') {
             formHTML += createLengthConverterForm();
+        } else if (sectionId === 'weight') {
+            formHTML += createWeightConverterForm();
         } else if (sectionId === 'temperature') {
             formHTML += createTemperatureConverterForm();
         } else if (sectionId === 'currency') {
@@ -166,6 +183,8 @@ function loadConverterSection(sectionId) {
         // Attach event listeners
         if (sectionId === 'length') {
             setupLengthConverter();
+        } else if (sectionId === 'weight') {
+            setupWeightConverter();
         } else if (sectionId === 'temperature') {
             setupTemperatureConverter();
         } else if (sectionId === 'currency') {
@@ -270,6 +289,104 @@ function swapUnits() {
     
     // Perform conversion
     performConversion();
+}
+
+// Create weight converter form HTML
+function createWeightConverterForm() {
+    const units = Object.keys(weightUnits);
+    const unitOptions = units.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+    
+    return `
+        <div class="converter-container">
+            <div class="converter-input-group">
+                <label for="weight-from-value">From:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="weight-from-value" placeholder="Enter value" value="1" step="any">
+                    <select id="weight-from-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="converter-button">
+                <button id="weight-swap-btn" title="Swap units">⇄</button>
+            </div>
+            
+            <div class="converter-input-group">
+                <label for="weight-to-value">To:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="weight-to-value" placeholder="Result" readonly>
+                    <select id="weight-to-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="conversion-info">
+            <p id="weight-conversion-text">1 g = <span id="weight-conversion-result">1</span> g</p>
+        </div>
+    `;
+}
+
+// Setup event listeners for weight converter
+function setupWeightConverter() {
+    const fromValue = document.getElementById('weight-from-value');
+    const fromUnit = document.getElementById('weight-from-unit');
+    const toValue = document.getElementById('weight-to-value');
+    const toUnit = document.getElementById('weight-to-unit');
+    const swapBtn = document.getElementById('weight-swap-btn');
+    
+    // Set default units
+    fromUnit.value = 'kg';
+    toUnit.value = 'lb';
+    
+    // Add event listeners
+    fromValue.addEventListener('input', performWeightConversion);
+    fromUnit.addEventListener('change', performWeightConversion);
+    toUnit.addEventListener('change', performWeightConversion);
+    swapBtn.addEventListener('click', swapWeightUnits);
+    
+    // Perform initial conversion
+    performWeightConversion();
+}
+
+// Perform weight conversion
+function performWeightConversion() {
+    const fromValue = document.getElementById('weight-from-value');
+    const fromUnit = document.getElementById('weight-from-unit');
+    const toValue = document.getElementById('weight-to-value');
+    const toUnit = document.getElementById('weight-to-unit');
+    const conversionText = document.getElementById('weight-conversion-text');
+    const conversionResult = document.getElementById('weight-conversion-result');
+    
+    const value = parseFloat(fromValue.value) || 0;
+    
+    // Convert to base unit (grams) then to target unit
+    const valueInGrams = value * weightUnits[fromUnit.value];
+    const result = valueInGrams / weightUnits[toUnit.value];
+    
+    toValue.value = result.toFixed(6).replace(/\.?0+$/, '');
+    
+    // Update conversion info
+    conversionText.textContent = `1 ${fromUnit.value} = `;
+    conversionResult.textContent = (weightUnits[toUnit.value] / weightUnits[fromUnit.value]).toFixed(6).replace(/\.?0+$/, '');
+}
+
+// Swap weight units
+function swapWeightUnits() {
+    const fromUnit = document.getElementById('weight-from-unit');
+    const toUnit = document.getElementById('weight-to-unit');
+    const fromValue = document.getElementById('weight-from-value');
+    const toValue = document.getElementById('weight-to-value');
+    
+    // Swap unit selects
+    [fromUnit.value, toUnit.value] = [toUnit.value, fromUnit.value];
+    
+    // Swap values
+    [fromValue.value, toValue.value] = [toValue.value, fromValue.value];
+    
+    // Perform conversion
+    performWeightConversion();
 }
 
 // Create temperature converter form HTML
