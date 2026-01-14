@@ -63,6 +63,19 @@ const areaUnits = {
     'mile²': 2589988.11
 };
 
+// Pressure conversion factors to base unit (Pascal)
+const pressureUnits = {
+    'Pa': 1,
+    'kPa': 1000,
+    'MPa': 1000000,
+    'bar': 100000,
+    'mbar': 100,
+    'psi': 6894.76,
+    'atm': 101325,
+    'torr': 133.322,
+    'mmHg': 133.322
+};
+
 // Temperature conversion (uses formulas instead of factors)
 const temperatureUnits = ['°C', '°F', 'K'];
 
@@ -190,6 +203,10 @@ function loadConverterSection(sectionId) {
             title: 'Speed Converter',
             description: 'Convert between m/s, km/h, mph, ft/s, knots, mach, etc.'
         },
+        pressure: {
+            title: 'Pressure Converter',
+            description: 'Convert between Pascal, bar, psi, atm, torr, mmHg, etc.'
+        },
         temperature: {
             title: 'Temperature Converter',
             description: 'Convert between Celsius, Fahrenheit, and Kelvin.'
@@ -221,6 +238,8 @@ function loadConverterSection(sectionId) {
             formHTML += createVolumeConverterForm();
         } else if (sectionId === 'speed') {
             formHTML += createSpeedConverterForm();
+        } else if (sectionId === 'pressure') {
+            formHTML += createPressureConverterForm();
         } else if (sectionId === 'temperature') {
             formHTML += createTemperatureConverterForm();
         } else if (sectionId === 'currency') {
@@ -243,6 +262,8 @@ function loadConverterSection(sectionId) {
             setupVolumeConverter();
         } else if (sectionId === 'speed') {
             setupSpeedConverter();
+        } else if (sectionId === 'pressure') {
+            setupPressureConverter();
         } else if (sectionId === 'temperature') {
             setupTemperatureConverter();
         } else if (sectionId === 'currency') {
@@ -956,6 +977,104 @@ function swapAreaUnits() {
     
     // Perform conversion
     performAreaConversion();
+}
+
+// Create pressure converter form HTML
+function createPressureConverterForm() {
+    const units = Object.keys(pressureUnits);
+    const unitOptions = units.map(unit => `<option value="${unit}">${unit}</option>`).join('');
+    
+    return `
+        <div class="converter-container">
+            <div class="converter-input-group">
+                <label for="press-from-value">From:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="press-from-value" placeholder="Enter value" value="1" step="any">
+                    <select id="press-from-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="converter-button">
+                <button id="press-swap-btn" title="Swap units">⇄</button>
+            </div>
+            
+            <div class="converter-input-group">
+                <label for="press-to-value">To:</label>
+                <div class="input-unit-group">
+                    <input type="number" id="press-to-value" placeholder="Result" readonly>
+                    <select id="press-to-unit">
+                        ${unitOptions}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="conversion-info">
+            <p id="press-conversion-text">1 bar = <span id="press-conversion-result">14.504</span> psi</p>
+        </div>
+    `;
+}
+
+// Setup event listeners for pressure converter
+function setupPressureConverter() {
+    const fromValue = document.getElementById('press-from-value');
+    const fromUnit = document.getElementById('press-from-unit');
+    const toValue = document.getElementById('press-to-value');
+    const toUnit = document.getElementById('press-to-unit');
+    const swapBtn = document.getElementById('press-swap-btn');
+    
+    // Set default units
+    fromUnit.value = 'bar';
+    toUnit.value = 'psi';
+    
+    // Add event listeners
+    fromValue.addEventListener('input', performPressureConversion);
+    fromUnit.addEventListener('change', performPressureConversion);
+    toUnit.addEventListener('change', performPressureConversion);
+    swapBtn.addEventListener('click', swapPressureUnits);
+    
+    // Perform initial conversion
+    performPressureConversion();
+}
+
+// Perform pressure conversion
+function performPressureConversion() {
+    const fromValue = document.getElementById('press-from-value');
+    const fromUnit = document.getElementById('press-from-unit');
+    const toValue = document.getElementById('press-to-value');
+    const toUnit = document.getElementById('press-to-unit');
+    const conversionText = document.getElementById('press-conversion-text');
+    const conversionResult = document.getElementById('press-conversion-result');
+    
+    const value = parseFloat(fromValue.value) || 0;
+    
+    // Convert to base unit (Pascal) then to target unit
+    const valueInPa = value * pressureUnits[fromUnit.value];
+    const result = valueInPa / pressureUnits[toUnit.value];
+    
+    toValue.value = result.toFixed(6).replace(/\.?0+$/, '');
+    
+    // Update conversion info
+    conversionText.textContent = `1 ${fromUnit.value} = `;
+    conversionResult.textContent = (pressureUnits[toUnit.value] / pressureUnits[fromUnit.value]).toFixed(6).replace(/\.?0+$/, '');
+}
+
+// Swap pressure units
+function swapPressureUnits() {
+    const fromUnit = document.getElementById('press-from-unit');
+    const toUnit = document.getElementById('press-to-unit');
+    const fromValue = document.getElementById('press-from-value');
+    const toValue = document.getElementById('press-to-value');
+    
+    // Swap unit selects
+    [fromUnit.value, toUnit.value] = [toUnit.value, fromUnit.value];
+    
+    // Swap values
+    [fromValue.value, toValue.value] = [toValue.value, fromValue.value];
+    
+    // Perform conversion
+    performPressureConversion();
 }
 
 // Utility function for conversions (to be expanded in future steps)
